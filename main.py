@@ -13,7 +13,6 @@ def send_to_topic(topic, value_to_send_dic):
 
 
 if __name__ == '__main__':
-    print("in main")
     for message in init.consumer_obj:
         global_init()
         message = message.value

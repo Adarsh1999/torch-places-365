@@ -1,10 +1,8 @@
 import torch
 from torch.autograd import Variable as V
-import torchvision.models as models
 from torchvision import transforms as trn
 from torch.nn import functional as F
 import numpy as np
-import cv2
 import os
 from PIL import Image
 
@@ -53,19 +51,19 @@ def load_labels():
 def hook_feature(module, input, output):
     features_blobs.append(np.squeeze(output.data.cpu().numpy()))
 
-def returnCAM(feature_conv, weight_softmax, class_idx):
-    # generate the class activation maps upsample to 256x256
-    size_upsample = (256, 256)
-    nc, h, w = feature_conv.shape
-    output_cam = []
-    for idx in class_idx:
-        cam = weight_softmax[class_idx].dot(feature_conv.reshape((nc, h*w)))
-        cam = cam.reshape(h, w)
-        cam = cam - np.min(cam)
-        cam_img = cam / np.max(cam)
-        cam_img = np.uint8(255 * cam_img)
-        output_cam.append(cv2.resize(cam_img, size_upsample))
-    return output_cam
+# def returnCAM(feature_conv, weight_softmax, class_idx):
+#     # generate the class activation maps upsample to 256x256
+#     size_upsample = (256, 256)
+#     nc, h, w = feature_conv.shape
+#     output_cam = []
+#     for idx in class_idx:
+#         cam = weight_softmax[class_idx].dot(feature_conv.reshape((nc, h*w)))
+#         cam = cam.reshape(h, w)
+#         cam = cam - np.min(cam)
+#         cam_img = cam / np.max(cam)
+#         cam_img = np.uint8(255 * cam_img)
+#         output_cam.append(cv2.resize(cam_img, size_upsample))
+#     return output_cam
 def returnTF():
 # load the image transformer
     tf = trn.Compose([
@@ -122,7 +120,6 @@ def predict(file_name, doc=False):
     probs = probs.numpy()
     idx = idx.numpy()
 
-    print('RESULT ON')
     # output the IO prediction
     io_image = np.mean(labels_IO[idx[:10]])  # vote for the indoor or outdoor
     if io_image < 0.5:
@@ -134,11 +131,9 @@ def predict(file_name, doc=False):
     scores = []
 
     # output the prediction of scene category
-    print('--SCENE CATEGORIES:')
     for i in range(0, 5):
         scores.append(probs[i])
         labels.append(classes[idx[i]])
-        print('{:.3f} -> {}'.format(probs[i], classes[idx[i]]))
 
     # output the scene attributes
     responses_attribute = W_attribute.dot(features_blobs[1])
@@ -146,8 +141,7 @@ def predict(file_name, doc=False):
     scene_attributes = [labels_attribute[idx_a[i]] for i in range(-1, -10, -1)]
 
     # generate class activation mapping
-    print('Class activation map is saved as cam.jpg')
-    CAMs = returnCAM(features_blobs[0], weight_softmax, [idx[0]])
+    #CAMs = returnCAM(features_blobs[0], weight_softmax, [idx[0]])
     scores = [float(np_float) for np_float in scores]
     if doc:
         full_results_dict = {
@@ -167,7 +161,7 @@ def predict(file_name, doc=False):
                 "labels": labels,
                 "scores": scores
             },
-            "scene_atrributes": scene_attributes
+            "scene_atrributes": scene_attributes,
             "is_doc_type": False
         }
         return full_results_dict
