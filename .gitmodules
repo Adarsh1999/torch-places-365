@@ -1,0 +1,3 @@
+[submodule "tencent-ml-images"]
+	path = tencent-ml-images
+	url = https://github.com/Tencent/tencent-ml-images
