@@ -1,0 +1,6 @@
+python-dotenv
+kafka-python
+redis
+opencv-contrib-python
+mongoengine
+pillow
