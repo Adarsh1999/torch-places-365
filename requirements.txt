@@ -3,3 +3,5 @@ kafka-python
 redis
 mongoengine
 pillow
+pyfiglet
+requests
