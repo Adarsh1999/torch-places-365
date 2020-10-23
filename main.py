@@ -1,6 +1,7 @@
 import json
 from db_models.mongo_setup import global_init
 from db_models.models.cache_model import Cache
+from db_models.models.result_model import Result
 import uuid
 import globals
 import init
@@ -9,9 +10,6 @@ import pyfiglet
 import requests
 
 global_init()
-def send_to_topic(topic, value_to_send_dic):
-    data_json = json.dumps(value_to_send_dic)
-    init.producer_obj.send(topic, value=data_json)
 
 def save_to_db(db_object, result_to_save):
     print("in save")
@@ -57,9 +55,26 @@ if __name__ == '__main__':
                         file_to_save.write(image.file.read())
                     images_array.append(pdf_image)
                 to_save  = []
+                final_labels=[]
+                final_scores=[]
                 for image in images_array:
                     response = predict(file_name=image)
-                    to_save.append(response)
+                    # final_labels.extend(response["labels"])
+                    for label,score in zip(response["labels"],response['scores']):
+                        if label not in final_labels:
+                            final_labels.append(label)
+                            final_scores.append(score)
+                        else:
+                            x = final_labels.index(label)
+                            score_to_check = final_scores[x]
+                            if score > score_to_check:
+                                final_scores[x] = score
+
+                final_result = {
+                    "labels": final_labels,
+                    "scores": final_scores
+                }
+                to_save.append(final_result)
                 save_to_db(db_object, to_save)
                 print(".....................FINISHED PROCESSING FILE.....................")
                 update_state(file_name)

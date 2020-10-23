@@ -5,6 +5,11 @@ from torch.nn import functional as F
 import numpy as np
 import os
 from PIL import Image
+# from db_models.models.cache_model import Cache
+# from db_models.models.result_model import Result
+# from db_models.mongo_setup import global_init
+#
+# global_init()
 
 def load_labels():
     # prepare all the labels
@@ -51,6 +56,19 @@ def load_labels():
 def hook_feature(module, input, output):
     features_blobs.append(np.squeeze(output.data.cpu().numpy()))
 
+# def returnCAM(feature_conv, weight_softmax, class_idx):
+#     # generate the class activation maps upsample to 256x256
+#     size_upsample = (256, 256)
+#     nc, h, w = feature_conv.shape
+#     output_cam = []
+#     for idx in class_idx:
+#         cam = weight_softmax[class_idx].dot(feature_conv.reshape((nc, h*w)))
+#         cam = cam.reshape(h, w)
+#         cam = cam - np.min(cam)
+#         cam_img = cam / np.max(cam)
+#         cam_img = np.uint8(255 * cam_img)
+#         output_cam.append(cv2.resize(cam_img, size_upsample))
+#     return output_cam
 def returnTF():
 # load the image transformer
     tf = trn.Compose([
@@ -97,8 +115,9 @@ weight_softmax = params[-2].data.numpy()
 weight_softmax[weight_softmax<0] = 0
 
 
-def predict(file_name):
-    img = Image.open(file_name)
+def predict(file_name, doc=False):
+    # img = Image.open(file_name)
+    img = Image.open(file_name).convert('RGB')
     input_img = V(tf(img).unsqueeze(0))
     # forward pass
     logit = model.forward(input_img)
@@ -107,6 +126,12 @@ def predict(file_name):
     probs = probs.numpy()
     idx = idx.numpy()
 
+    # output the IO prediction
+    io_image = np.mean(labels_IO[idx[:10]])  # vote for the indoor or outdoor
+    if io_image < 0.5:
+        env_type = 'indoor'
+    else:
+        env_type = 'outdoor'
 
     labels = []
     scores = []
@@ -117,14 +142,21 @@ def predict(file_name):
         labels.append(classes[idx[i]])
 
 
+    # output the scene attributes
+    responses_attribute = W_attribute.dot(features_blobs[1])
+    idx_a = np.argsort(responses_attribute)
+    scene_attributes = [labels_attribute[idx_a[i]] for i in range(-1, -10, -1)]
+
+    # generate class activation mapping
+    #CAMs = returnCAM(features_blobs[0], weight_softmax, [idx[0]])
     scores = [float(np_float) for np_float in scores]
 
-    full_results_dict = {
 
+    full_results_dict = {
 
             "labels": labels,
             "scores": scores
 
-
     }
+
     return full_results_dict
