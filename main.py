@@ -24,7 +24,11 @@ def update_state(file):
         'client_id': globals.CLIENT_ID,
         'value': file
     }
-    requests.request("POST", globals.DASHBOARD_URL,  data=payload)
+
+    try:
+        requests.request("POST", globals.DASHBOARD_URL,  data=payload)
+    except:
+        print("EXCEPTION IN UPDATE STATE API CALL......")
 
 
 if __name__ == '__main__':
@@ -36,7 +40,12 @@ if __name__ == '__main__':
         global_init()
         message = message.value
         db_key = str(message)
-        db_object = Cache.objects.get(pk=db_key)
+        print(db_key, 'db_key')
+        try:
+            db_object = Cache.objects.get(pk=db_key)
+        except:
+            print("EXCEPTION IN GET PK... continue")
+            continue
         file_name = db_object.file_name
         # init.redis_obj.set(globals.RECEIVE_TOPIC, file_name)
         print("#############################################")
@@ -55,7 +64,12 @@ if __name__ == '__main__':
                 final_labels=db_object.labels
                 final_scores=db_object.scores
                 for image in images_array:
-                    response = predict(file_name=image)
+
+                    try:
+                        response = predict(file_name=image)
+                    except:
+                        print("ERROR IN PREDICT")
+                        continue
                     # final_labels.extend(response["labels"])
                     for label,score in zip(response["labels"],response['scores']):
                         if label not in final_labels:

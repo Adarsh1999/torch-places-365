@@ -56,19 +56,7 @@ def load_labels():
 def hook_feature(module, input, output):
     features_blobs.append(np.squeeze(output.data.cpu().numpy()))
 
-# def returnCAM(feature_conv, weight_softmax, class_idx):
-#     # generate the class activation maps upsample to 256x256
-#     size_upsample = (256, 256)
-#     nc, h, w = feature_conv.shape
-#     output_cam = []
-#     for idx in class_idx:
-#         cam = weight_softmax[class_idx].dot(feature_conv.reshape((nc, h*w)))
-#         cam = cam.reshape(h, w)
-#         cam = cam - np.min(cam)
-#         cam_img = cam / np.max(cam)
-#         cam_img = np.uint8(255 * cam_img)
-#         output_cam.append(cv2.resize(cam_img, size_upsample))
-#     return output_cam
+
 def returnTF():
 # load the image transformer
     tf = trn.Compose([
