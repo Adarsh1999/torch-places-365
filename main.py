@@ -1,7 +1,6 @@
 import json
 from db_models.mongo_setup import global_init
 from db_models.models.cache_model import Cache
-from db_models.models.result_model import Result
 import uuid
 import globals
 import init
@@ -11,14 +10,12 @@ import requests
 
 global_init()
 
-def save_to_db(db_object, result_to_save):
+def save_to_db(db_object, labels, scores):
     print("in save")
     print(db_object)
     print(db_object.id)
-    result_obj = Result()
-    result_obj.results = result_to_save
-    result_obj.model_name = globals.RECEIVE_TOPIC
-    db_object.results.append(result_obj)
+    db_object.labels = labels
+    db_object.scores = scores
     db_object.save()
 
 def update_state(file):
@@ -55,8 +52,8 @@ if __name__ == '__main__':
                         file_to_save.write(image.file.read())
                     images_array.append(pdf_image)
                 to_save  = []
-                final_labels=[]
-                final_scores=[]
+                final_labels=db_object.labels
+                final_scores=db_object.labels
                 for image in images_array:
                     response = predict(file_name=image)
                     # final_labels.extend(response["labels"])
@@ -70,12 +67,8 @@ if __name__ == '__main__':
                             if score > score_to_check:
                                 final_scores[x] = score
 
-                final_result = {
-                    "labels": final_labels,
-                    "scores": final_scores
-                }
-                to_save.append(final_result)
-                save_to_db(db_object, to_save)
+
+                save_to_db(db_object,final_labels,final_scores)
                 print(".....................FINISHED PROCESSING FILE.....................")
                 update_state(file_name)
 
@@ -85,7 +78,8 @@ if __name__ == '__main__':
             with open(file_name, 'wb') as file_to_save:
                 file_to_save.write(db_object.file.read())
             image_result = predict(file_name)
-            to_save = [image_result]
-            save_to_db(db_object, to_save)
+            labels=image_result['labels']
+            scores=image_result['scores']
+            save_to_db(db_object,labels,scores)
             print(".....................FINISHED PROCESSING FILE.....................")
             update_state(file_name)
