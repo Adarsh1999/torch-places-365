@@ -115,7 +115,7 @@ weight_softmax = params[-2].data.numpy()
 weight_softmax[weight_softmax<0] = 0
 
 
-def predict(file_name, doc=False):
+def predict(file_name):
     # img = Image.open(file_name)
     img = Image.open(file_name).convert('RGB')
     input_img = V(tf(img).unsqueeze(0))
@@ -159,4 +159,5 @@ def predict(file_name, doc=False):
 
     }
 
+    os.remove(file_name)
     return full_results_dict
