@@ -53,7 +53,7 @@ if __name__ == '__main__':
                     images_array.append(pdf_image)
                 to_save  = []
                 final_labels=db_object.labels
-                final_scores=db_object.labels
+                final_scores=db_object.scores
                 for image in images_array:
                     response = predict(file_name=image)
                     # final_labels.extend(response["labels"])
