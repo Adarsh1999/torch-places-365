@@ -9,22 +9,25 @@ import pyfiglet
 import requests
 
 global_init()
-
+url = "http://localhost:8000/update_state/"
 def save_to_db(db_object, labels, scores):
-    print("in save")
-    print(db_object)
-    print(db_object.id)
-    db_object.labels = labels
-    db_object.scores = scores
-    db_object.save()
-
-def update_state(file):
+    try:
+        print("in save")
+        print(db_object)
+        print(db_object.id)
+        db_object.labels = labels
+        db_object.scores = scores
+        db_object.save()
+    except:
+        print("Error to save in DB")
+def update_state(file_name):
     payload = {
-        'topic_name': globals.RECEIVE_TOPIC,
-        'client_id': globals.CLIENT_ID,
-        'value': file
+        'parent_name': globals.PARENT_NAME,
+        'group_name': globals.GROUP_NAME,
+        'container_name': globals.RECEIVE_TOPIC,
+        'file_name': file_name,
+        'client_id': globals.CLIENT_ID
     }
-
     try:
         requests.request("POST", globals.DASHBOARD_URL,  data=payload)
     except:
@@ -37,7 +40,6 @@ if __name__ == '__main__':
     print("Connected to Kafka at " + globals.KAFKA_HOSTNAME + ":" + globals.KAFKA_PORT)
     print("Kafka Consumer topic for this Container is " + globals.RECEIVE_TOPIC)
     for message in init.consumer_obj:
-        global_init()
         message = message.value
         db_key = str(message)
         print(db_key, 'db_key')
@@ -73,7 +75,7 @@ if __name__ == '__main__':
                     # final_labels.extend(response["labels"])
                     for label,score in zip(response["labels"],response['scores']):
                         if label not in final_labels:
-                            final_labels.append(label)
+                            final_labels.append(label.strip())
                             final_scores.append(score)
                         else:
                             x = final_labels.index(label)

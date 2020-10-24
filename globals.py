@@ -19,3 +19,6 @@ MONGO_USER = os.getenv('MONGO_USER')
 MONGO_PASSWORD = os.getenv('MONGO_PASSWORD')
 CLIENT_ID = os.getenv('CLIENT_ID')
 DASHBOARD_URL = os.getenv('DASHBOARD_URL')
+
+PARENT_NAME="Image"
+GROUP_NAME="Scene_Recognition"
