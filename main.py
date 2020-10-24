@@ -9,7 +9,6 @@ import pyfiglet
 import requests
 
 global_init()
-url = "http://localhost:8000/update_state/"
 def save_to_db(db_object, labels, scores):
     try:
         print("in save")
