@@ -5,3 +5,4 @@ mongoengine
 pillow
 pyfiglet
 requests
+python-logstash-async
